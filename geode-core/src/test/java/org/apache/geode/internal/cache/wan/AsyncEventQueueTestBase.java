@@ -718,17 +718,20 @@ public class AsyncEventQueueTestBase extends JUnit4DistributedTestCase {
   }
 
   public static void checkAsyncEventQueueStats(String queueId, final int queueSize,
-      final int eventsReceived, final int eventsQueued, final int eventsDistributed) {
+      int secondaryQueueSize, final int eventsReceived, final int eventsQueued,
+      final int eventsDistributed) {
     Set<AsyncEventQueue> asyncQueues = cache.getAsyncEventQueues();
     AsyncEventQueue queue = null;
+    boolean isParallel = false;
     for (AsyncEventQueue q : asyncQueues) {
+      isParallel = q.isParallel();
       if (q.getId().equals(queueId)) {
         queue = q;
         break;
       }
     }
     final AsyncEventQueueStats statistics = ((AsyncEventQueueImpl) queue).getStatistics();
-    Awaitility.await().atMost(60, TimeUnit.SECONDS)
+    Awaitility.await().atMost(120, TimeUnit.SECONDS)
         .until(() -> assertEquals("Expected queue entries: " + queueSize + " but actual entries: "
             + statistics.getEventQueueSize(), queueSize, statistics.getEventQueueSize()));
     assertEquals(queueSize, statistics.getEventQueueSize());
