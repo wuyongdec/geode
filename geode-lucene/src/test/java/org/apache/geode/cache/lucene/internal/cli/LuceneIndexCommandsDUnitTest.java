@@ -48,8 +48,8 @@ import org.apache.geode.cache.lucene.LuceneIndex;
 import org.apache.geode.cache.lucene.LuceneQuery;
 import org.apache.geode.cache.lucene.LuceneService;
 import org.apache.geode.cache.lucene.LuceneServiceProvider;
+import org.apache.geode.cache.lucene.internal.InternalLuceneIndex;
 import org.apache.geode.cache.lucene.internal.LuceneIndexCreationProfile;
-import org.apache.geode.cache.lucene.internal.LuceneIndexImpl;
 import org.apache.geode.cache.lucene.internal.LuceneServiceImpl;
 import org.apache.geode.cache.lucene.internal.repository.serializer.PrimitiveSerializer;
 import org.apache.geode.distributed.ConfigurationProperties;
@@ -709,7 +709,8 @@ public class LuceneIndexCommandsDUnitTest implements Serializable {
       Region region = getCache().getRegion(REGION_NAME);
       region.putAll(entries);
       luceneService.waitUntilFlushed(INDEX_NAME, REGION_NAME, 60000, TimeUnit.MILLISECONDS);
-      LuceneIndexImpl index = (LuceneIndexImpl) luceneService.getIndex(INDEX_NAME, REGION_NAME);
+      InternalLuceneIndex index =
+          (InternalLuceneIndex) luceneService.getIndex(INDEX_NAME, REGION_NAME);
       Awaitility.await().atMost(65, TimeUnit.SECONDS).until(
           () -> assertEquals(true, countOfDocuments <= index.getIndexStats().getDocuments()));
 

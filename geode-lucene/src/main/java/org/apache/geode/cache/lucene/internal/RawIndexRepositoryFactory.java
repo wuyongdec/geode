@@ -36,14 +36,19 @@ public class RawIndexRepositoryFactory extends IndexRepositoryFactory {
   public IndexRepository computeIndexRepository(final Integer bucketId, LuceneSerializer serializer,
       InternalLuceneIndex index, PartitionedRegion userRegion, IndexRepository oldRepository)
       throws IOException {
-    final IndexRepository repo;
     if (oldRepository != null) {
       oldRepository.cleanup();
     }
-    LuceneRawIndex indexForRaw = (LuceneRawIndex) index;
-    BucketRegion dataBucket = getMatchingBucket(userRegion, bucketId);
-    Directory dir = null;
-    if (indexForRaw.withPersistence()) {
+    BucketRegion dataBucket = userRegion.getOrCreateMatchingBucketForRegion(bucketId);
+    IndexWriterConfig config = new IndexWriterConfig(((LuceneRawIndex) index).getAnalyzer());
+    IndexWriter writer = new IndexWriter(getDirectory(bucketId, index), config);
+
+    return new IndexRepositoryImpl(writer, serializer, index.getIndexStats(), dataBucket, index);
+  }
+
+  private Directory getDirectory(Integer bucketId, InternalLuceneIndex index) throws IOException {
+    Directory dir;
+    if (index.withPersistence()) {
       String bucketLocation = LuceneServiceImpl.getUniqueIndexName(index.getName(),
           index.getRegionPath() + "_" + bucketId);
       File location = new File(index.getName(), bucketLocation);
@@ -54,10 +59,6 @@ public class RawIndexRepositoryFactory extends IndexRepositoryFactory {
     } else {
       dir = new RAMDirectory();
     }
-    IndexWriterConfig config = new IndexWriterConfig(indexForRaw.getAnalyzer());
-    IndexWriter writer = new IndexWriter(dir, config);
-
-    return new IndexRepositoryImpl(null, writer, serializer, indexForRaw.getIndexStats(),
-        dataBucket, null, "", indexForRaw);
+    return dir;
   }
 }

@@ -24,7 +24,7 @@ import org.apache.geode.internal.cache.PartitionedRegion;
 public class RawLuceneRepositoryManager extends PartitionedRepositoryManager {
   public static IndexRepositoryFactory indexRepositoryFactory = new RawIndexRepositoryFactory();
 
-  public RawLuceneRepositoryManager(LuceneIndexImpl index, LuceneSerializer serializer) {
+  public RawLuceneRepositoryManager(InternalLuceneIndex index, LuceneSerializer serializer) {
     super(index, serializer);
   }
 

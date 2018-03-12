@@ -9955,4 +9955,14 @@ public class PartitionedRegion extends LocalRegion
   public Logger getLogger() {
     return logger;
   }
+
+  /**
+   * Find the bucket in region2 that matches the bucket id from region1.
+   */
+  public BucketRegion getOrCreateMatchingBucketForRegion(Integer bucketId) {
+    // Force the bucket to be created if it is not already
+    this.getOrCreateNodeForBucketWrite(bucketId, null);
+
+    return this.getDataStore().getLocalBucketById(bucketId);
+  }
 }

@@ -29,6 +29,7 @@ import org.mockito.ArgumentCaptor;
 
 import org.apache.geode.cache.execute.FunctionContext;
 import org.apache.geode.cache.execute.ResultSender;
+import org.apache.geode.cache.lucene.internal.InternalLuceneIndex;
 import org.apache.geode.cache.lucene.internal.InternalLuceneService;
 import org.apache.geode.cache.lucene.internal.LuceneIndexImpl;
 import org.apache.geode.cache.lucene.internal.LuceneServiceImpl;
@@ -53,7 +54,7 @@ public class LuceneDescribeIndexFunctionJUnitTest {
     FunctionContext context = mock(FunctionContext.class);
     ResultSender resultSender = mock(ResultSender.class);
     LuceneIndexInfo indexInfo = getMockLuceneInfo("index1");
-    LuceneIndexImpl index1 = getMockLuceneIndex("index1");
+    InternalLuceneIndex index1 = getMockLuceneIndex("index1");
     LuceneDescribeIndexFunction function = new LuceneDescribeIndexFunction();
 
     doReturn(indexInfo).when(context).getArguments();
@@ -82,13 +83,13 @@ public class LuceneDescribeIndexFunctionJUnitTest {
     return mockInfo;
   }
 
-  private LuceneIndexImpl getMockLuceneIndex(final String indexName) {
+  private InternalLuceneIndex getMockLuceneIndex(final String indexName) {
     String[] searchableFields = {"field1", "field2"};
     Map<String, Analyzer> fieldAnalyzers = new HashMap<>();
     fieldAnalyzers.put("field1", new StandardAnalyzer());
     fieldAnalyzers.put("field2", new KeywordAnalyzer());
 
-    LuceneIndexImpl index = mock(LuceneIndexImpl.class);
+    InternalLuceneIndex index = mock(LuceneIndexImpl.class);
     when(index.getName()).thenReturn(indexName);
     when(index.getRegionPath()).thenReturn("/region");
     when(index.getFieldNames()).thenReturn(searchableFields);

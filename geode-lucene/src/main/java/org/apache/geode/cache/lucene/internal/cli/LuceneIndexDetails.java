@@ -23,8 +23,8 @@ import java.util.Map.Entry;
 import org.apache.lucene.analysis.Analyzer;
 
 import org.apache.geode.cache.lucene.LuceneSerializer;
+import org.apache.geode.cache.lucene.internal.InternalLuceneIndex;
 import org.apache.geode.cache.lucene.internal.LuceneIndexCreationProfile;
-import org.apache.geode.cache.lucene.internal.LuceneIndexImpl;
 import org.apache.geode.cache.lucene.internal.LuceneIndexStats;
 import org.apache.geode.cache.lucene.internal.repository.serializer.HeterogeneousLuceneSerializer;
 
@@ -52,7 +52,7 @@ public class LuceneIndexDetails extends LuceneFunctionSerializable
         : HeterogeneousLuceneSerializer.class.getSimpleName();
   }
 
-  public LuceneIndexDetails(LuceneIndexImpl index, final String serverName) {
+  public LuceneIndexDetails(InternalLuceneIndex index, final String serverName) {
     this(index.getName(), index.getRegionPath(), index.getFieldNames(), index.getFieldAnalyzers(),
         index.getIndexStats(), true, serverName, index.getLuceneSerializer());
   }

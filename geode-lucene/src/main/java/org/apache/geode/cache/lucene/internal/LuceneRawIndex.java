@@ -14,7 +14,9 @@
  */
 package org.apache.geode.cache.lucene.internal;
 
+import org.apache.geode.cache.Region;
 import org.apache.geode.cache.lucene.LuceneSerializer;
+import org.apache.geode.cache.lucene.internal.repository.IndexRepository;
 import org.apache.geode.cache.lucene.internal.repository.RepositoryManager;
 import org.apache.geode.cache.lucene.internal.repository.serializer.HeterogeneousLuceneSerializer;
 import org.apache.geode.internal.cache.InternalCache;
@@ -44,10 +46,14 @@ public class LuceneRawIndex extends LuceneIndexImpl {
   }
 
   @Override
-  public void dumpFiles(String directory) {
-    return;
-  }
+  public void dumpFiles(String directory) {}
 
   @Override
   public void destroy(boolean initiator) {}
+
+  @Override
+  public IndexRepository computeIndex(Integer bucketId, LuceneSerializer serializer,
+      Region userRegion, IndexRepository oldRepository) {
+    return null;
+  }
 }

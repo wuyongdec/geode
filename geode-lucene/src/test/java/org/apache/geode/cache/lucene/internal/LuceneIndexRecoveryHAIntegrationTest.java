@@ -37,7 +37,6 @@ import org.apache.geode.cache.lucene.internal.repository.IndexRepository;
 import org.apache.geode.cache.lucene.internal.repository.RepositoryManager;
 import org.apache.geode.cache.lucene.internal.repository.serializer.HeterogeneousLuceneSerializer;
 import org.apache.geode.internal.cache.BucketNotFoundException;
-import org.apache.geode.internal.cache.GemFireCacheImpl;
 import org.apache.geode.internal.cache.PartitionedRegion;
 import org.apache.geode.test.junit.categories.IntegrationTest;
 import org.apache.geode.test.junit.categories.LuceneTest;
@@ -91,7 +90,7 @@ public class LuceneIndexRecoveryHAIntegrationTest {
     userRegion.put("rebalance", "test");
     service.waitUntilFlushed("index1", "userRegion", 30000, TimeUnit.MILLISECONDS);
 
-    RepositoryManager manager = new PartitionedRepositoryManager((LuceneIndexImpl) index, mapper);
+    RepositoryManager manager = new PartitionedRepositoryManager(index, mapper);
     IndexRepository repo = manager.getRepository(userRegion, 0, null);
     assertNotNull(repo);
 
@@ -106,7 +105,7 @@ public class LuceneIndexRecoveryHAIntegrationTest {
 
     userRegion = (PartitionedRegion) regionfactory.create("userRegion");
     userRegion.put("rebalance", "test");
-    manager = new PartitionedRepositoryManager((LuceneIndexImpl) index, mapper);
+    manager = new PartitionedRepositoryManager(index, mapper);
     IndexRepository newRepo = manager.getRepository(userRegion, 0, null);
 
     Assert.assertNotEquals(newRepo, repo);

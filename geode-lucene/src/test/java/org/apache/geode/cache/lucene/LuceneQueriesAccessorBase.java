@@ -38,8 +38,8 @@ import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.control.RebalanceOperation;
 import org.apache.geode.cache.control.RebalanceResults;
+import org.apache.geode.cache.lucene.internal.InternalLuceneIndex;
 import org.apache.geode.cache.lucene.internal.LuceneIndexFactorySpy;
-import org.apache.geode.cache.lucene.internal.LuceneIndexImpl;
 import org.apache.geode.cache.lucene.test.IndexRepositorySpy;
 import org.apache.geode.cache.partition.PartitionRegionHelper;
 import org.apache.geode.distributed.DistributedMember;
@@ -76,7 +76,7 @@ public class LuceneQueriesAccessorBase extends LuceneDUnitTest {
       Cache cache = getCache();
 
       LuceneService service = LuceneServiceProvider.get(cache);
-      LuceneIndexImpl index = (LuceneIndexImpl) service.getIndex(INDEX_NAME, REGION_NAME);
+      InternalLuceneIndex index = (InternalLuceneIndex) service.getIndex(INDEX_NAME, REGION_NAME);
 
       return service.waitUntilFlushed(INDEX_NAME, REGION_NAME, ms, TimeUnit.MILLISECONDS);
     });

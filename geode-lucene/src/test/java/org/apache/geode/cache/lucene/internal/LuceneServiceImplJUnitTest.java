@@ -146,7 +146,7 @@ public class LuceneServiceImplJUnitTest {
     Set<Integer> primaryBucketIds = new HashSet(Arrays.asList(bucketIds));
     when(dataStore.getAllLocalPrimaryBucketIds()).thenReturn(primaryBucketIds);
     when(dataStore.getLocalBucketById(3)).thenReturn(null);
-    boolean result = service.createLuceneIndexOnDataRegion(region, index);
+    boolean result = service.createLuceneIndexOnDataRegion(index, region.getDataStore());
     assertTrue(result);
   }
 

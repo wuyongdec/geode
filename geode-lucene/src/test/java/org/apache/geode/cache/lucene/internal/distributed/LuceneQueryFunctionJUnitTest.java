@@ -43,6 +43,7 @@ import org.apache.geode.cache.lucene.LuceneIndexNotFoundException;
 import org.apache.geode.cache.lucene.LuceneQueryException;
 import org.apache.geode.cache.lucene.LuceneQueryFactory;
 import org.apache.geode.cache.lucene.LuceneQueryProvider;
+import org.apache.geode.cache.lucene.internal.InternalLuceneIndex;
 import org.apache.geode.cache.lucene.internal.InternalLuceneService;
 import org.apache.geode.cache.lucene.internal.LuceneIndexCreationProfile;
 import org.apache.geode.cache.lucene.internal.LuceneIndexImpl;
@@ -79,7 +80,7 @@ public class LuceneQueryFunctionJUnitTest {
   private IndexRepository mockRepository2;
   private IndexResultCollector mockCollector;
   private InternalLuceneService mockService;
-  private LuceneIndexImpl mockIndex;
+  private InternalLuceneIndex mockIndex;
   private LuceneIndexStats mockStats;
 
   private ArrayList<IndexRepository> repos;
@@ -347,7 +348,7 @@ public class LuceneQueryFunctionJUnitTest {
     mockService = mock(InternalLuceneService.class);
     mockCache = mock(InternalCache.class);
     Analyzer analyzer = new StandardAnalyzer();
-    Mockito.doReturn(analyzer).when(mockIndex).getAnalyzer();
+    when(((LuceneIndexImpl) mockIndex).getAnalyzer()).thenReturn(analyzer);
     queryProvider = new StringQueryProvider("gemfire:lucene", DEFAULT_FIELD);
 
     searchArgs = new LuceneFunctionContext<IndexResultCollector>(queryProvider, "indexName");

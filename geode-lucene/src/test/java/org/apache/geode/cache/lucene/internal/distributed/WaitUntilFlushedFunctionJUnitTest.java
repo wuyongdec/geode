@@ -28,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.asyncqueue.internal.AsyncEventQueueImpl;
 import org.apache.geode.cache.execute.ResultSender;
+import org.apache.geode.cache.lucene.internal.InternalLuceneIndex;
 import org.apache.geode.cache.lucene.internal.InternalLuceneService;
 import org.apache.geode.cache.lucene.internal.LuceneIndexImpl;
 import org.apache.geode.internal.cache.InternalCache;
@@ -51,7 +52,7 @@ public class WaitUntilFlushedFunctionJUnitTest {
   Region<Object, Object> mockRegion;
   AsyncEventQueueImpl mockAEQ;
   InternalLuceneService mockService;
-  LuceneIndexImpl mockIndex;
+  InternalLuceneIndex mockIndex;
   WaitUntilFlushedFunctionContext waitArgs;
   private InternalCache mockCache;
 

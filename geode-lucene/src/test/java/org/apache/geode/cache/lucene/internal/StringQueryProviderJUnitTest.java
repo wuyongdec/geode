@@ -35,14 +35,14 @@ import org.apache.geode.test.junit.categories.UnitTest;
 @Category({UnitTest.class, LuceneTest.class})
 public class StringQueryProviderJUnitTest {
 
-  private LuceneIndexImpl mockIndex;
+  private InternalLuceneIndex mockIndex;
 
   @Before
   public void initMocksAndCommonObjects() {
     mockIndex = Mockito.mock(LuceneIndexImpl.class, "mockIndex");
     String[] fields = {"field-1", "field-2"};
     Analyzer analyzer = new StandardAnalyzer();
-    Mockito.doReturn(analyzer).when(mockIndex).getAnalyzer();
+    Mockito.when(((LuceneIndexImpl) mockIndex).getAnalyzer()).thenReturn(analyzer);
     Mockito.doReturn(fields).when(mockIndex).getFieldNames();
     Mockito.doReturn("mockIndex").when(mockIndex).getName();
     Mockito.doReturn("mockRegionPath").when(mockIndex).getRegionPath();

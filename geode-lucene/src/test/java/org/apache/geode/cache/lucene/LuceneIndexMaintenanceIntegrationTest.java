@@ -42,8 +42,8 @@ import org.apache.geode.cache.ExpirationAttributes;
 import org.apache.geode.cache.LoaderHelper;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.RegionShortcut;
+import org.apache.geode.cache.lucene.internal.InternalLuceneIndex;
 import org.apache.geode.cache.lucene.internal.LuceneIndexForPartitionedRegion;
-import org.apache.geode.cache.lucene.internal.LuceneIndexImpl;
 import org.apache.geode.cache.lucene.internal.LuceneIndexStats;
 import org.apache.geode.cache.lucene.internal.filesystem.FileSystemStats;
 import org.apache.geode.cache.lucene.internal.repository.serializer.HeterogeneousLuceneSerializer;
@@ -269,7 +269,8 @@ public class LuceneIndexMaintenanceIntegrationTest extends LuceneIntegrationTest
     region.put("object-3", new TestObject("title 3", "hello world"));
     region.put("object-4", new TestObject("hello world", "hello world"));
 
-    LuceneIndexImpl index = (LuceneIndexImpl) luceneService.getIndex(INDEX_NAME, REGION_NAME);
+    InternalLuceneIndex index =
+        (InternalLuceneIndex) luceneService.getIndex(INDEX_NAME, REGION_NAME);
     assertFalse(
         luceneService.waitUntilFlushed(INDEX_NAME, REGION_NAME, 500, TimeUnit.MILLISECONDS));
     LuceneTestUtilities.resumeSender(cache);

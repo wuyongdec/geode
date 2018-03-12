@@ -15,7 +15,7 @@
 package org.apache.geode.cache.lucene.internal.management;
 
 import org.apache.geode.cache.lucene.LuceneIndex;
-import org.apache.geode.cache.lucene.internal.LuceneIndexImpl;
+import org.apache.geode.cache.lucene.internal.InternalLuceneIndex;
 import org.apache.geode.cache.lucene.management.LuceneIndexMetrics;
 import org.apache.geode.management.internal.beans.stats.MBeanStatsMonitor;
 import org.apache.geode.management.internal.beans.stats.StatType;
@@ -33,7 +33,7 @@ public class LuceneIndexStatsMonitor extends MBeanStatsMonitor {
 
   public LuceneIndexStatsMonitor(LuceneIndex index) {
     super(LUCENE_SERVICE_MXBEAN_MONITOR_PREFIX + index.getRegionPath() + "_" + index.getName());
-    addStatisticsToMonitor(((LuceneIndexImpl) index).getIndexStats().getStats());
+    addStatisticsToMonitor(((InternalLuceneIndex) index).getIndexStats().getStats());
     configureMetrics();
   }
 

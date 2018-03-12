@@ -46,13 +46,13 @@ public abstract class LuceneIndexImpl implements InternalLuceneIndex {
   protected final String indexName;
   protected final String regionPath;
   protected final InternalCache cache;
-  protected final LuceneIndexStats indexStats;
+  private final LuceneIndexStats indexStats;
 
   protected Map<String, Analyzer> fieldAnalyzers;
-  protected String[] searchableFieldNames;
-  protected RepositoryManager repositoryManager;
+  private String[] searchableFieldNames;
+  private RepositoryManager repositoryManager;
   protected Analyzer analyzer;
-  protected LuceneSerializer luceneSerializer;
+  private LuceneSerializer luceneSerializer;
   protected LocalRegion dataRegion;
 
   protected LuceneIndexImpl(String indexName, String regionPath, InternalCache cache) {
@@ -82,11 +82,11 @@ public abstract class LuceneIndexImpl implements InternalLuceneIndex {
     return dataRegion;
   }
 
-  protected boolean withPersistence() {
+  @Override
+  public boolean withPersistence() {
     RegionAttributes ra = dataRegion.getAttributes();
     DataPolicy dp = ra.getDataPolicy();
-    final boolean withPersistence = dp.withPersistence();
-    return withPersistence;
+    return dp.withPersistence();
   }
 
   protected void setSearchableFields(String[] fields) {
@@ -174,8 +174,7 @@ public abstract class LuceneIndexImpl implements InternalLuceneIndex {
   private AsyncEventQueue createAEQ(AsyncEventQueueFactoryImpl factory, String aeqId) {
     LuceneEventListener listener = new LuceneEventListener(cache, repositoryManager);
     factory.setGatewayEventSubstitutionListener(new LuceneEventSubstitutionFilter());
-    AsyncEventQueue indexQueue = factory.create(aeqId, listener);
-    return indexQueue;
+    return factory.create(aeqId, listener);
   }
 
   private AsyncEventQueueFactoryImpl createAEQFactory(final RegionAttributes attributes) {

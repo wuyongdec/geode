@@ -15,11 +15,19 @@
 
 package org.apache.geode.cache.lucene.internal;
 
+import java.io.IOException;
+
 import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.Region;
 import org.apache.geode.cache.lucene.LuceneIndex;
+import org.apache.geode.cache.lucene.LuceneSerializer;
+import org.apache.geode.cache.lucene.internal.repository.IndexRepository;
 import org.apache.geode.cache.lucene.internal.repository.RepositoryManager;
+import org.apache.geode.internal.cache.PartitionedRegion;
 
 public interface InternalLuceneIndex extends LuceneIndex {
+
+  boolean withPersistence();
 
   RepositoryManager getRepositoryManager();
 
@@ -39,4 +47,6 @@ public interface InternalLuceneIndex extends LuceneIndex {
 
   void initialize();
 
+  IndexRepository computeIndex(Integer bucketId, LuceneSerializer serializer,
+      Region<?, ?> userRegion, IndexRepository oldRepository) throws IOException;
 }

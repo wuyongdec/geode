@@ -1800,9 +1800,8 @@ public class PartitionedRegionDataStore implements HasCachePerfStats {
    * @return an initialized local bucket or null
    */
   public BucketRegion getLocalBucketByKey(Object key) {
-    Integer bucketId = Integer
-        .valueOf(PartitionedRegionHelper.getHashKey(this.partitionedRegion, null, key, null, null));
-    return getLocalBucketById(bucketId);
+    return getLocalBucketById(
+        PartitionedRegionHelper.getHashKey(this.partitionedRegion, null, key, null, null));
   }
 
   /**
@@ -2757,7 +2756,7 @@ public class PartitionedRegionDataStore implements HasCachePerfStats {
     for (Map.Entry<Integer, BucketRegion> bucketEntry : getAllLocalBuckets()) {
       BucketRegion bucket = bucketEntry.getValue();
       if (bucket.getBucketAdvisor().isPrimary()) {
-        bucketIds.add(Integer.valueOf(bucket.getId()));
+        bucketIds.add(bucket.getId());
       }
     }
     return bucketIds;

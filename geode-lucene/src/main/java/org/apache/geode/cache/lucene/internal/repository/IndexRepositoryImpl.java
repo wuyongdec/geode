@@ -77,6 +77,11 @@ public class IndexRepositoryImpl implements IndexRepository {
     this.index = index;
   }
 
+  public IndexRepositoryImpl(IndexWriter writer, LuceneSerializer serializer,
+      LuceneIndexStats stats, Region<?, ?> userRegion, LuceneIndex index) throws IOException {
+    this(null, writer, serializer, stats, userRegion, null, null, index);
+  }
+
   protected SearcherManager createSearchManager() throws IOException {
     return new SearcherManager(writer, APPLY_ALL_DELETES, true, null);
   }

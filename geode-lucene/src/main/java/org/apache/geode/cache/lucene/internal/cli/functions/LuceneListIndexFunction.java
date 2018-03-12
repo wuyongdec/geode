@@ -23,8 +23,8 @@ import org.apache.geode.cache.execute.Function;
 import org.apache.geode.cache.execute.FunctionContext;
 import org.apache.geode.cache.lucene.LuceneIndex;
 import org.apache.geode.cache.lucene.LuceneServiceProvider;
+import org.apache.geode.cache.lucene.internal.InternalLuceneIndex;
 import org.apache.geode.cache.lucene.internal.LuceneIndexCreationProfile;
-import org.apache.geode.cache.lucene.internal.LuceneIndexImpl;
 import org.apache.geode.cache.lucene.internal.LuceneServiceImpl;
 import org.apache.geode.cache.lucene.internal.cli.LuceneIndexDetails;
 import org.apache.geode.internal.InternalEntity;
@@ -57,7 +57,7 @@ public class LuceneListIndexFunction implements InternalFunction {
     final String serverName = cache.getDistributedSystem().getDistributedMember().getName();
     LuceneServiceImpl service = (LuceneServiceImpl) LuceneServiceProvider.get(cache);
     for (LuceneIndex index : service.getAllIndexes()) {
-      indexDetailsSet.add(new LuceneIndexDetails((LuceneIndexImpl) index, serverName));
+      indexDetailsSet.add(new LuceneIndexDetails((InternalLuceneIndex) index, serverName));
     }
 
     for (LuceneIndexCreationProfile profile : service.getAllDefinedIndexes()) {
