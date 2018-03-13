@@ -213,13 +213,10 @@ public class PartitionedRepositoryManagerJUnitTest {
 
     when(fileDataStore.getLocalBucketById(eq(0))).thenReturn(null);
 
-    when(fileAndChunkRegion.getOrCreateNodeForBucketWrite(eq(0), (RetryTimeKeeper) any()))
-        .then(new Answer() {
-          @Override
-          public Object answer(InvocationOnMock invocation) throws Throwable {
-            when(fileDataStore.getLocalBucketById(eq(0))).thenReturn(fileAndChunkBuckets.get(0));
-            return null;
-          }
+    when(fileAndChunkRegion.getOrCreateNodeForBucketWrite(eq(0), any()))
+        .then((Answer) invocation -> {
+          when(fileDataStore.getLocalBucketById(eq(0))).thenReturn(fileAndChunkBuckets.get(0));
+          return null;
         });
 
     assertNotNull(repoManager.getRepository(userRegion, 0, null));
@@ -279,7 +276,7 @@ public class PartitionedRepositoryManagerJUnitTest {
     when(fileAndChunkBucket.getFullPath()).thenReturn("File" + id);
     when(mockBucket.getId()).thenReturn(id);
     when(userRegion.getBucketRegion(eq(id), eq(null))).thenReturn(mockBucket);
-    when(userDataStore.getLocalBucketById(eq(id))).thenReturn(mockBucket);
+    when(userRegion.getDataStore().getLocalBucketById(eq(id))).thenReturn(mockBucket);
     when(userRegion.getBucketRegion(eq(id + 113), eq(null))).thenReturn(mockBucket);
     when(userDataStore.getLocalBucketById(eq(id + 113))).thenReturn(mockBucket);
     when(fileDataStore.getLocalBucketById(eq(id))).thenReturn(fileAndChunkBucket);

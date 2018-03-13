@@ -14,8 +14,10 @@
  */
 package org.apache.geode.cache.lucene.internal;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -88,9 +90,11 @@ public class RawLuceneRepositoryManagerJUnitTest extends PartitionedRepositoryMa
   protected BucketRegion setUpMockBucket(int id) throws BucketNotFoundException {
     BucketRegion mockBucket = Mockito.mock(BucketRegion.class);
     when(mockBucket.getId()).thenReturn(id);
-    when(userRegion.getBucketRegion(eq(id), eq(null))).thenReturn(mockBucket);
+    when(userRegion.getBucketRegion(eq(id), null)).thenReturn(mockBucket);
+    when(userRegion.getOrCreateMatchingBucketForRegion(eq(id))).thenReturn(mockBucket);
     when(userDataStore.getLocalBucketById(eq(id))).thenReturn(mockBucket);
     when(userRegion.getBucketRegion(eq(id + 113), eq(null))).thenReturn(mockBucket);
+    when(userRegion.getOrCreateMatchingBucketForRegion(eq(id + 113))).thenReturn(mockBucket);
     when(userDataStore.getLocalBucketById(eq(id + 113))).thenReturn(mockBucket);
     dataBuckets.put(id, mockBucket);
 
@@ -101,6 +105,8 @@ public class RawLuceneRepositoryManagerJUnitTest extends PartitionedRepositoryMa
   @Test
   public void createMissingBucket() throws BucketNotFoundException {
     setUpMockBucket(0);
+
+    assertTrue(userRegion.getDataStore() == userDataStore);
 
     assertNotNull(repoManager.getRepository(userRegion, 0, null));
   }

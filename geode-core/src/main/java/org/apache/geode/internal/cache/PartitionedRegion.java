@@ -9673,10 +9673,7 @@ public class PartitionedRegion extends LocalRegion
    * @since GemFire 6.1.2.9
    */
   public BucketRegion getBucketRegion(Object key) {
-    if (this.dataStore == null)
-      return null;
-    Integer bucketId = PartitionedRegionHelper.getHashKey(this, null, key, null, null);
-    return this.dataStore.getLocalBucketById(bucketId);
+    return getBucketRegion(key,null);
   }
 
   /**
@@ -9963,6 +9960,13 @@ public class PartitionedRegion extends LocalRegion
     // Force the bucket to be created if it is not already
     this.getOrCreateNodeForBucketWrite(bucketId, null);
 
+    return this.getDataStore().getLocalBucketById(bucketId);
+  }
+
+  /**
+   * Find the bucket in region2 that matches the bucket id from region1.
+   */
+  public BucketRegion getLocalBucketById(Integer bucketId) {
     return this.getDataStore().getLocalBucketById(bucketId);
   }
 }

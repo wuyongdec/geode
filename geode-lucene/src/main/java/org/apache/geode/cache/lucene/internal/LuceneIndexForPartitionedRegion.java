@@ -225,77 +225,78 @@ public class LuceneIndexForPartitionedRegion extends LuceneIndexImpl {
   @Override
   public IndexRepository computeIndex(Integer bucketId, LuceneSerializer serializer,
       Region<?, ?> userRegion, IndexRepository oldRepository) throws IOException {
-    final PartitionedRegion fileRegion = getFileAndChunkRegion();
-
-    // We need to ensure that all members have created the fileAndChunk region before continuing
-    Region prRoot = PartitionedRegionHelper.getPRRoot(fileRegion.getCache());
-    PartitionRegionConfig prConfig =
-        (PartitionRegionConfig) prRoot.get(fileRegion.getRegionIdentifier());
-    while (!prConfig.isColocationComplete()) {
-      prConfig = (PartitionRegionConfig) prRoot.get(fileRegion.getRegionIdentifier());
-    }
-
-    BucketRegion fileAndChunkBucket = fileRegion.getOrCreateMatchingBucketForRegion(bucketId);
-    BucketRegion dataBucket =
-        ((PartitionedRegion) userRegion).getOrCreateMatchingBucketForRegion(bucketId);
-
-    if (fileAndChunkBucket == null || !fileAndChunkBucket.getBucketAdvisor().isPrimary()) {
-      if (oldRepository != null) {
-        oldRepository.cleanup();
-      }
-      return null;
-    }
-
-    if (oldRepository != null && !oldRepository.isClosed()) {
-      return oldRepository;
-    }
-
-    if (oldRepository != null) {
-      oldRepository.cleanup();
-    }
-    DistributedLockService lockService = getLockService();
-    String lockName = getLockName(fileAndChunkBucket);
-    while (!lockService.lock(lockName, 100, -1)) {
-      if (!fileAndChunkBucket.getBucketAdvisor().isPrimary()) {
-        return null;
-      }
-    }
-
-    final IndexRepository repo;
-    boolean initialPdxReadSerializedFlag = cache.getPdxReadSerializedOverride();
-    cache.setPdxReadSerializedOverride(true);
-    boolean success = false;
-    try {
-      // bucketTargetingMap handles partition resolver (via bucketId as callbackArg)
-      Map bucketTargetingMap = getBucketTargetingMap(fileAndChunkBucket, bucketId);
-      RegionDirectory dir = new RegionDirectory(bucketTargetingMap, this.getFileSystemStats());
-      IndexWriterConfig config = new IndexWriterConfig(this.getAnalyzer());
-      IndexWriter writer = new IndexWriter(dir, config);
-      repo = new IndexRepositoryImpl(fileAndChunkBucket, writer, serializer, this.getIndexStats(),
-          dataBucket, lockService, lockName, this);
-
-      // fileRegion ops (get/put) need bucketId as a callbackArg for PartitionResolver
-      if (null != fileRegion.get(APACHE_GEODE_INDEX_COMPLETE, bucketId)) {
-        success = true;
-        return repo;
-      } else {
-        success = reindexUserDataRegion(bucketId, userRegion, fileRegion, dataBucket, repo);
-      }
-      return repo;
-    } catch (IOException e) {
-      logger.info("Exception thrown while constructing Lucene Index for bucket:" + bucketId
-          + " for file region:" + fileAndChunkBucket.getFullPath());
-      throw e;
-    } catch (CacheClosedException e) {
-      logger.info("CacheClosedException thrown while constructing Lucene Index for bucket:"
-          + bucketId + " for file region:" + fileAndChunkBucket.getFullPath());
-      throw e;
-    } finally {
-      if (!success) {
-        lockService.unlock(lockName);
-        cache.setPdxReadSerializedOverride(initialPdxReadSerializedFlag);
-      }
-    }
+    throw new RuntimeException("I should have gotten here...");
+//    final PartitionedRegion fileRegion = getFileAndChunkRegion();
+//
+//    // We need to ensure that all members have created the fileAndChunk region before continuing
+//    Region prRoot = PartitionedRegionHelper.getPRRoot(fileRegion.getCache());
+//    PartitionRegionConfig prConfig =
+//        (PartitionRegionConfig) prRoot.get(fileRegion.getRegionIdentifier());
+//    while (!prConfig.isColocationComplete()) {
+//      prConfig = (PartitionRegionConfig) prRoot.get(fileRegion.getRegionIdentifier());
+//    }
+//
+//    BucketRegion fileAndChunkBucket = fileRegion.getOrCreateMatchingBucketForRegion(bucketId);
+//    BucketRegion dataBucket =
+//        ((PartitionedRegion) userRegion).getOrCreateMatchingBucketForRegion(bucketId);
+//
+//    if (fileAndChunkBucket == null || !fileAndChunkBucket.getBucketAdvisor().isPrimary()) {
+//      if (oldRepository != null) {
+//        oldRepository.cleanup();
+//      }
+//      return null;
+//    }
+//
+//    if (oldRepository != null && !oldRepository.isClosed()) {
+//      return oldRepository;
+//    }
+//
+//    if (oldRepository != null) {
+//      oldRepository.cleanup();
+//    }
+//    DistributedLockService lockService = getLockService();
+//    String lockName = getLockName(fileAndChunkBucket);
+//    while (!lockService.lock(lockName, 100, -1)) {
+//      if (!fileAndChunkBucket.getBucketAdvisor().isPrimary()) {
+//        return null;
+//      }
+//    }
+//
+//    final IndexRepository repo;
+//    boolean initialPdxReadSerializedFlag = cache.getPdxReadSerializedOverride();
+//    cache.setPdxReadSerializedOverride(true);
+//    boolean success = false;
+//    try {
+//      // bucketTargetingMap handles partition resolver (via bucketId as callbackArg)
+//      Map bucketTargetingMap = getBucketTargetingMap(fileAndChunkBucket, bucketId);
+//      RegionDirectory dir = new RegionDirectory(bucketTargetingMap, this.getFileSystemStats());
+//      IndexWriterConfig config = new IndexWriterConfig(this.getAnalyzer());
+//      IndexWriter writer = new IndexWriter(dir, config);
+//      repo = new IndexRepositoryImpl(fileAndChunkBucket, writer, serializer, this.getIndexStats(),
+//          dataBucket, lockService, lockName, this);
+//
+//      // fileRegion ops (get/put) need bucketId as a callbackArg for PartitionResolver
+//      if (null != fileRegion.get(APACHE_GEODE_INDEX_COMPLETE, bucketId)) {
+//        success = true;
+//        return repo;
+//      } else {
+//        success = reindexUserDataRegion(bucketId, userRegion, fileRegion, dataBucket, repo);
+//      }
+//      return repo;
+//    } catch (IOException e) {
+//      logger.info("Exception thrown while constructing Lucene Index for bucket:" + bucketId
+//          + " for file region:" + fileAndChunkBucket.getFullPath());
+//      throw e;
+//    } catch (CacheClosedException e) {
+//      logger.info("CacheClosedException thrown while constructing Lucene Index for bucket:"
+//          + bucketId + " for file region:" + fileAndChunkBucket.getFullPath());
+//      throw e;
+//    } finally {
+//      if (!success) {
+//        lockService.unlock(lockName);
+//        cache.setPdxReadSerializedOverride(initialPdxReadSerializedFlag);
+//      }
+//    }
   }
 
   private boolean reindexUserDataRegion(Integer bucketId, Region userRegion, Region fileRegion,
