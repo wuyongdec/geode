@@ -14,7 +14,6 @@
  */
 package org.apache.geode.cache.lucene.internal;
 
-import java.util.Collections;
 import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
@@ -48,20 +47,33 @@ public abstract class LuceneIndexImpl implements InternalLuceneIndex {
   protected final InternalCache cache;
   protected final LuceneIndexStats indexStats;
 
-  protected Map<String, Analyzer> fieldAnalyzers;
+  protected final Map<String, Analyzer> fieldAnalyzers;
   protected String[] searchableFieldNames;
-  protected RepositoryManager repositoryManager;
+  protected final RepositoryManager repositoryManager;
   protected Analyzer analyzer;
   protected LuceneSerializer luceneSerializer;
   protected LocalRegion dataRegion;
 
-  protected LuceneIndexImpl(String indexName, String regionPath, InternalCache cache) {
+  LuceneIndexImpl() {
+    this(null, null, null, null, null);
+  }
+
+  protected LuceneIndexImpl(String indexName, String regionPath, InternalCache cache,
+      LuceneSerializer serializer, Map<String, Analyzer> fieldAnalyzers) {
     this.indexName = indexName;
     this.regionPath = regionPath;
     this.cache = cache;
 
     final String statsName = indexName + "-" + regionPath;
-    this.indexStats = new LuceneIndexStats(cache.getDistributedSystem(), statsName);
+    if (getCache() != null) {
+      this.indexStats = new LuceneIndexStats(getCache().getDistributedSystem(), statsName);
+    } else {
+      this.indexStats = null;
+    }
+    luceneSerializer = serializer;
+    repositoryManager = createRepositoryManager(luceneSerializer);
+    this.fieldAnalyzers = fieldAnalyzers;
+
   }
 
   @Override
@@ -123,17 +135,8 @@ public abstract class LuceneIndexImpl implements InternalLuceneIndex {
     return this.luceneSerializer;
   }
 
-  public void setLuceneSerializer(LuceneSerializer serializer) {
-    this.luceneSerializer = serializer;
-  }
-
   public Cache getCache() {
     return this.cache;
-  }
-
-  public void setFieldAnalyzers(Map<String, Analyzer> fieldAnalyzers) {
-    this.fieldAnalyzers =
-        fieldAnalyzers == null ? null : Collections.unmodifiableMap(fieldAnalyzers);
   }
 
   public LuceneIndexStats getIndexStats() {
@@ -143,12 +146,10 @@ public abstract class LuceneIndexImpl implements InternalLuceneIndex {
   public void initialize() {
     /* create index region */
     dataRegion = assignDataRegion();
+    System.err.println(this + ".initialize  DataRegion: " + dataRegion + "  repositoryManager: "
+        + repositoryManager);
     createLuceneListenersAndFileChunkRegions((PartitionedRepositoryManager) repositoryManager);
     addExtension(dataRegion);
-  }
-
-  protected void setupRepositoryManager(LuceneSerializer luceneSerializer) {
-    repositoryManager = createRepositoryManager(luceneSerializer);
   }
 
   protected abstract RepositoryManager createRepositoryManager(LuceneSerializer luceneSerializer);
@@ -156,19 +157,19 @@ public abstract class LuceneIndexImpl implements InternalLuceneIndex {
   protected abstract void createLuceneListenersAndFileChunkRegions(
       PartitionedRepositoryManager partitionedRepositoryManager);
 
-  protected AsyncEventQueue createAEQ(Region dataRegion) {
-    String aeqId = LuceneServiceImpl.getUniqueIndexName(getName(), regionPath);
-    return createAEQ(createAEQFactory(dataRegion.getAttributes()), aeqId);
+  protected AsyncEventQueue createAEQ(RegionAttributes attributes) {
+    return createAEQ(attributes, LuceneServiceImpl.getUniqueIndexName(getName(), regionPath));
   }
 
   protected AsyncEventQueue createAEQ(RegionAttributes attributes, String aeqId) {
-    if (attributes.getPartitionAttributes() != null) {
+    if (attributes != null && attributes.getPartitionAttributes() != null) {
       if (attributes.getPartitionAttributes().getLocalMaxMemory() == 0) {
         // accessor will not create AEQ
         return null;
       }
+      return createAEQ(createAEQFactory(attributes), aeqId);
     }
-    return createAEQ(createAEQFactory(attributes), aeqId);
+    return null;
   }
 
   private AsyncEventQueue createAEQ(AsyncEventQueueFactoryImpl factory, String aeqId) {

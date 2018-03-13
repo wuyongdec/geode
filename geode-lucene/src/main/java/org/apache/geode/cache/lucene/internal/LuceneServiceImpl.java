@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
@@ -66,6 +64,7 @@ import org.apache.geode.cache.lucene.internal.results.LuceneGetPageFunction;
 import org.apache.geode.cache.lucene.internal.results.PageResults;
 import org.apache.geode.cache.lucene.internal.xml.LuceneServiceXmlGenerator;
 import org.apache.geode.distributed.internal.DistributionConfig;
+import org.apache.geode.distributed.internal.DistributionManager;
 import org.apache.geode.internal.DSFIDFactory;
 import org.apache.geode.internal.DataSerializableFixedID;
 import org.apache.geode.internal.cache.BucketNotFoundException;
@@ -84,7 +83,6 @@ import org.apache.geode.management.internal.beans.CacheServiceMBeanBase;
 /**
  * Implementation of LuceneService to create lucene index and query.
  *
- *
  * @since GemFire 8.5
  */
 public class LuceneServiceImpl implements InternalLuceneService {
@@ -97,6 +95,7 @@ public class LuceneServiceImpl implements InternalLuceneService {
   private IndexListener managementListener;
   public static boolean LUCENE_REINDEX =
       Boolean.getBoolean(DistributionConfig.GEMFIRE_PREFIX + "luceneReindex");
+  private DistributionManager dm;
 
   public LuceneServiceImpl() {}
 
@@ -117,6 +116,7 @@ public class LuceneServiceImpl implements InternalLuceneService {
     cache.getCancelCriterion().checkCancelInProgress(null);
 
     this.cache = (InternalCache) cache;
+    this.dm = ((InternalCache) cache).getDistributionManager();
 
     FunctionService.registerFunction(new LuceneQueryFunction());
     FunctionService.registerFunction(new LuceneGetPageFunction());
@@ -166,8 +166,7 @@ public class LuceneServiceImpl implements InternalLuceneService {
     if (!regionPath.startsWith("/")) {
       regionPath = "/" + regionPath;
     }
-    String name = indexName + "#" + regionPath.replace('/', '_');
-    return name;
+    return indexName + "#" + regionPath.replace('/', '_');
   }
 
   public static String getUniqueIndexRegionName(String indexName, String regionPath,
@@ -232,6 +231,7 @@ public class LuceneServiceImpl implements InternalLuceneService {
     LuceneIndexImpl luceneIndex = beforeDataRegionCreated(indexName, regionPath,
         region.getAttributes(), analyzer, fieldAnalyzers, aeqId, serializer, fields);
 
+    System.out.println(this + ".createIndexOnExistingRegion  index: " + luceneIndex);
     afterDataRegionCreated(luceneIndex);
 
     region.addAsyncEventQueueId(aeqId, true);
@@ -324,19 +324,20 @@ public class LuceneServiceImpl implements InternalLuceneService {
       RegionAttributes attributes, final Analyzer analyzer,
       final Map<String, Analyzer> fieldAnalyzers, String aeqId, final LuceneSerializer serializer,
       final String... fields) {
-    LuceneIndexImpl index = createIndexObject(indexName, regionPath);
-    index.setSearchableFields(fields);
-    index.setAnalyzer(analyzer);
-    index.setFieldAnalyzers(fieldAnalyzers);
-    index.setLuceneSerializer(serializer);
-    index.setupRepositoryManager(serializer);
-    index.createAEQ(attributes, aeqId);
+    LuceneIndexImpl index = createIndexObject(indexName, regionPath, fields, analyzer,
+        fieldAnalyzers, serializer, attributes, aeqId);
+    System.err.println(this + ".beforeDataRegionCreated Index: " + index);
     return index;
-
   }
 
-  private LuceneIndexImpl createIndexObject(String indexName, String regionPath) {
-    return luceneIndexFactory.create(indexName, regionPath, cache);
+  private LuceneIndexImpl createIndexObject(String indexName, String regionPath, String[] fields,
+      Analyzer analyzer, Map<String, Analyzer> fieldAnalyzers, LuceneSerializer serializer,
+      RegionAttributes attributes, String aeqId) {
+    System.err.println(this + ".createIndexObject LuceneIndexFactory: " + luceneIndexFactory);
+    LuceneIndexImpl index = luceneIndexFactory.create(indexName, regionPath, cache, analyzer,
+        fieldAnalyzers, serializer, attributes, aeqId, fields, dm.getWaitingThreadPool());
+    System.err.println(this + ".createIndexObject Index: " + index);
+    return index;
   }
 
   private void registerDefinedIndex(final String indexName, final String regionPath,
@@ -530,11 +531,12 @@ public class LuceneServiceImpl implements InternalLuceneService {
   }
 
   public void unregisterIndex(final String region) {
-    if (indexMap.containsKey(region))
+    if (indexMap.containsKey(region)) {
       indexMap.remove(region);
+    }
   }
 
-  /** Public for test purposes */
+  // Public for test purposes
   public static void registerDataSerializables() {
     DSFIDFactory.registerDSFID(DataSerializableFixedID.LUCENE_CHUNK_KEY, ChunkKey.class);
 

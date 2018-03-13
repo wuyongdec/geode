@@ -53,7 +53,7 @@ public class RawLuceneRepositoryManagerJUnitTest extends PartitionedRepositoryMa
 
   @After
   public void tearDown() {
-    ((RawLuceneRepositoryManager) repoManager).close();
+    repoManager.close();
   }
 
   protected void createIndexAndRepoManager() {
@@ -66,6 +66,7 @@ public class RawLuceneRepositoryManagerJUnitTest extends PartitionedRepositoryMa
     when(indexForPR.getCache()).thenReturn(cache);
     when(indexForPR.getRegionPath()).thenReturn("/testRegion");
     when(indexForPR.withPersistence()).thenReturn(true);
+    when(indexForPR.getName()).thenReturn("rawLuceneTest");
     repoManager = new RawLuceneRepositoryManager(indexForPR, serializer);
     repoManager.setUserRegionForRepositoryManager(userRegion);
     repoManager.allowRepositoryComputation();
@@ -85,7 +86,7 @@ public class RawLuceneRepositoryManagerJUnitTest extends PartitionedRepositoryMa
   }
 
   @Override
-  protected BucketRegion setUpMockBucket(int id) throws BucketNotFoundException {
+  protected BucketRegion setUpMockBucket(int id) {
     BucketRegion mockBucket = Mockito.mock(BucketRegion.class);
     when(mockBucket.getId()).thenReturn(id);
     when(userRegion.getBucketRegion(eq(id), eq(null))).thenReturn(mockBucket);

@@ -14,10 +14,15 @@
  */
 package org.apache.geode.cache.lucene.internal;
 
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.mockito.Mockito;
 
+import org.apache.geode.cache.RegionAttributes;
+import org.apache.geode.cache.lucene.LuceneSerializer;
 import org.apache.geode.internal.cache.InternalCache;
 
 public class LuceneIndexFactorySpy extends LuceneIndexImplFactory {
@@ -36,9 +41,15 @@ public class LuceneIndexFactorySpy extends LuceneIndexImplFactory {
   };
 
   @Override
-  public LuceneIndexImpl create(String indexName, String regionPath, InternalCache cache) {
+  public LuceneIndexImpl create(String indexName, String regionPath, InternalCache cache,
+      Analyzer analyzer, Map<String, Analyzer> fieldAnalyzers, LuceneSerializer serializer,
+      RegionAttributes attributes, String aeqId, String[] fields,
+      ExecutorService waitingThreadPool) {
+
     LuceneIndexForPartitionedRegion index =
-        Mockito.spy(new ExtendedLuceneIndexForPartitionedRegion(indexName, regionPath, cache));
+        Mockito.spy(new ExtendedLuceneIndexForPartitionedRegion(indexName, regionPath, cache,
+            analyzer, fieldAnalyzers, serializer, attributes, aeqId, fields, waitingThreadPool));
+    System.err.println(this + ".create  " + index);
     return index;
   }
 
@@ -49,9 +60,14 @@ public class LuceneIndexFactorySpy extends LuceneIndexImplFactory {
 
   private static class ExtendedLuceneIndexForPartitionedRegion
       extends LuceneIndexForPartitionedRegion {
-    public ExtendedLuceneIndexForPartitionedRegion(final String indexName, final String regionPath,
-        final InternalCache cache) {
-      super(indexName, regionPath, cache);
+
+
+    public ExtendedLuceneIndexForPartitionedRegion(String indexName, String regionPath,
+        InternalCache cache, Analyzer analyzer, Map<String, Analyzer> fieldAnalyzers,
+        LuceneSerializer serializer, RegionAttributes attributes, String aeqId, String[] fields,
+        ExecutorService waitingThreadPool) {
+      super(indexName, regionPath, cache, analyzer, fieldAnalyzers, serializer, attributes, aeqId,
+          fields, waitingThreadPool);
     }
 
   }

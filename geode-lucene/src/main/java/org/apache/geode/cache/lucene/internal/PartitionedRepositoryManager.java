@@ -20,6 +20,9 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+
+import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.InternalGemFireError;
 import org.apache.geode.cache.Region;
@@ -32,8 +35,10 @@ import org.apache.geode.internal.cache.BucketNotFoundException;
 import org.apache.geode.internal.cache.BucketRegion;
 import org.apache.geode.internal.cache.PartitionedRegion;
 import org.apache.geode.internal.cache.execute.InternalRegionFunctionContext;
+import org.apache.geode.internal.logging.LogService;
 
 public class PartitionedRepositoryManager implements RepositoryManager {
+  private final Logger logger = LogService.getLogger();
   public static IndexRepositoryFactory indexRepositoryFactory = new IndexRepositoryFactory();
   /**
    * map of the parent bucket region to the index repository
@@ -47,17 +52,23 @@ public class PartitionedRepositoryManager implements RepositoryManager {
   protected final ConcurrentHashMap<Integer, IndexRepository> indexRepositories =
       new ConcurrentHashMap<Integer, IndexRepository>();
 
-  /** The user region for this index */
+  /**
+   * The user region for this index
+   */
   protected PartitionedRegion userRegion = null;
   protected final LuceneSerializer serializer;
   protected final InternalLuceneIndex index;
   protected volatile boolean closed;
   private final CountDownLatch isDataRegionReady = new CountDownLatch(1);
 
-  public PartitionedRepositoryManager(InternalLuceneIndex index, LuceneSerializer serializer) {
+  private final ExecutorService waitingThreadPoolFromDM;
+
+  public PartitionedRepositoryManager(InternalLuceneIndex index, LuceneSerializer serializer,
+      ExecutorService waitingThreadPool) {
     this.index = index;
     this.serializer = serializer;
     this.closed = false;
+    this.waitingThreadPoolFromDM = waitingThreadPool;
   }
 
   public void setUserRegionForRepositoryManager(PartitionedRegion userRegion) {
@@ -66,7 +77,7 @@ public class PartitionedRepositoryManager implements RepositoryManager {
 
   @Override
   public Collection<IndexRepository> getRepositories(RegionFunctionContext ctx)
-      throws BucketNotFoundException {
+      throws BucketNotFoundException, LuceneIndexCreationInProgressException {
     Region<Object, Object> region = ctx.getDataSet();
     Set<Integer> buckets = ((InternalRegionFunctionContext) ctx).getLocalBucketSet(region);
     ArrayList<IndexRepository> repos = new ArrayList<IndexRepository>(buckets.size());
@@ -76,7 +87,21 @@ public class PartitionedRepositoryManager implements RepositoryManager {
         throw new BucketNotFoundException(
             "User bucket was not found for region " + region + "bucket id " + bucketId);
       } else {
-        repos.add(getRepository(userBucket.getId()));
+        if (index.isIndexAvailable(userBucket.getId())) {
+          repos.add(getRepository(userBucket.getId()));
+        } else {
+          waitingThreadPoolFromDM.execute(() -> {
+            try {
+              IndexRepository repository = getRepository(userBucket.getId());
+              repos.add(repository);
+            } catch (BucketNotFoundException e) {
+              logger.debug(
+                  "Lucene Index creation still in progress. Catching BucketNotFoundException");
+            }
+          });
+          throw new LuceneIndexCreationInProgressException(
+              "Lucene Index creation still in progress for bucket: " + userBucket.getId());
+        }
       }
     }
 
@@ -137,7 +162,7 @@ public class PartitionedRepositoryManager implements RepositoryManager {
         }
         return computeRepository(bucketId, serializer, index, userRegion, oldRepository);
       } catch (IOException e) {
-        throw new InternalGemFireError("Unable to create index repository", e);
+        throw new InternalGemFireError("Unable to create index repository for bucket "+bucketId, e);
       }
     });
     return repo;
@@ -155,7 +180,8 @@ public class PartitionedRepositoryManager implements RepositoryManager {
       try {
         computeRepository(bucketId);
       } catch (LuceneIndexDestroyedException e) {
-        /* expected exception */}
+        /* expected exception */
+      }
     }
   }
 }
