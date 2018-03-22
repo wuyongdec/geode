@@ -3135,6 +3135,7 @@ public class WANTestBase extends DistributedTestCase {
           ((AbstractGatewaySender) sender).getQueues().toArray(new RegionQueue[1])[0];
       Set<BucketRegion> buckets = ((PartitionedRegion) regionQueue.getRegion()).getDataStore()
           .getAllLocalPrimaryBucketRegions();
+      final AbstractGatewaySender abstractSender = (AbstractGatewaySender) sender;
       for (final BucketRegion bucket : buckets) {
         Awaitility.await().atMost(30, TimeUnit.SECONDS).until(() -> {
           assertEquals("Expected bucket entries for bucket: " + bucket.getId()
@@ -3143,6 +3144,19 @@ public class WANTestBase extends DistributedTestCase {
               bucket.keySet().size());
         });
       } // for loop ends
+      assertEquals("Except events in all primary queues after drain is 0", 0,
+          abstractSender.getEventQueueSize());
+
+      Awaitility.await().atMost(60, TimeUnit.SECONDS).until(() -> {
+        System.out
+            .println("GGG:secondary queue size is " + abstractSender.getEventSecondaryQueueSize());
+        assertEquals(
+            "Expected events in all secondary queues are drained but actual is "
+                + abstractSender.getEventSecondaryQueueSize(),
+            0, abstractSender.getEventSecondaryQueueSize());
+      });
+      assertEquals("Except events in all secondary queues after drain is 0", 0,
+          abstractSender.getEventSecondaryQueueSize());
     } finally {
       exp.remove();
       exp1.remove();

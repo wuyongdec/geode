@@ -270,6 +270,25 @@ public abstract class AbstractGatewaySenderEventProcessor extends Thread {
     return this.queue.size();
   }
 
+  public int eventSecondaryQueueSize() {
+    if (queue == null) {
+      return 0;
+    }
+
+    // if parallel, get both primary and secondary queues' size, then substract primary queue's size
+    if (this.queue instanceof ParallelGatewaySenderQueue) {
+      int size = ((ParallelGatewaySenderQueue) queue).localSize(true)
+          - ((ParallelGatewaySenderQueue) queue).localSize(false);
+      return size;
+    }
+    if (this.queue instanceof ConcurrentParallelGatewaySenderQueue) {
+      int size = ((ConcurrentParallelGatewaySenderQueue) queue).localSize(true)
+          - ((ConcurrentParallelGatewaySenderQueue) queue).localSize(false);
+      return size;
+    }
+    return this.queue.size();
+  }
+
   /**
    * @return the sender
    */
