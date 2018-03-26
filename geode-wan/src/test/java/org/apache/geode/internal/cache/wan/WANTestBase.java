@@ -3222,6 +3222,18 @@ public class WANTestBase extends DistributedTestCase {
       } // for loop ends
       assertEquals("Except events in all primary queues after drain is 0", 0,
           abstractSender.getEventQueueSize());
+      Awaitility.await().atMost(60, TimeUnit.SECONDS).until(() -> {
+        System.out
+            .println("GGG:secondary queue size is " + abstractSender.getEventSecondaryQueueSize()
+                + ":" + abstractSender.getStatistics().getEventSecondaryQueueSize());
+        assertEquals(
+            "Expected events in all secondary queues are drained but actual is "
+                + abstractSender.getEventSecondaryQueueSize() + ":"
+                + abstractSender.getStatistics().getEventSecondaryQueueSize(),
+            0, abstractSender.getEventSecondaryQueueSize());
+      });
+      assertEquals("Except events in all secondary queues after drain is 0", 0,
+          abstractSender.getEventSecondaryQueueSize());
     } finally {
       exp.remove();
       exp1.remove();

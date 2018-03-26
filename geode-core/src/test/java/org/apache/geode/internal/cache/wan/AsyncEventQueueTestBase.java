@@ -734,6 +734,17 @@ public class AsyncEventQueueTestBase extends JUnit4DistributedTestCase {
     Awaitility.await().atMost(120, TimeUnit.SECONDS)
         .until(() -> assertEquals("Expected queue entries: " + queueSize + " but actual entries: "
             + statistics.getEventQueueSize(), queueSize, statistics.getEventQueueSize()));
+    if (isParallel) {
+      Awaitility.await().atMost(60, TimeUnit.SECONDS).until(() -> {
+        assertEquals(
+            "Expected events in the secondary queue is " + secondaryQueueSize + ", but actual is "
+                + statistics.getEventSecondaryQueueSize(),
+            secondaryQueueSize, statistics.getEventSecondaryQueueSize());
+      });
+    } else {
+      // for serial queue, evenvSecondaryQueueSize is not used
+      assertEquals(0, statistics.getEventSecondaryQueueSize());
+    }
     assertEquals(queueSize, statistics.getEventQueueSize());
     assertEquals(eventsReceived, statistics.getEventsReceived());
     assertEquals(eventsQueued, statistics.getEventsQueued());
