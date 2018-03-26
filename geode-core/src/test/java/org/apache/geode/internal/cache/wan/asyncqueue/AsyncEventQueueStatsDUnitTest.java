@@ -84,7 +84,7 @@ public class AsyncEventQueueStatsDUnitTest extends AsyncEventQueueTestBase {
   /**
    * Two listeners added to the same RR.
    */
-  // @Test
+  @Test
   public void testAsyncStatsTwoListeners() throws Exception {
     Integer lnPort = createFirstLocatorWithDSId(1);
 

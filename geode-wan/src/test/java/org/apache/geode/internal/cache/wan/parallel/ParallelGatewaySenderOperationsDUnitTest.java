@@ -588,7 +588,7 @@ public class ParallelGatewaySenderOperationsDUnitTest extends WANTestBase {
     vm7.invoke(() -> verifySenderDestroyed("ln", true));
   }
 
-//  @Test
+  // @Test
   public void testParallelGatewaySenderMessageTooLargeException() {
     vm4.invoke(() -> System.setProperty(MAX_MESSAGE_SIZE_PROPERTY, String.valueOf(1024 * 1024)));
 

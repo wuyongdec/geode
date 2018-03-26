@@ -1423,6 +1423,20 @@ public class ParallelGatewaySenderQueue implements RegionQueue {
     return size /* + sender.getTmpQueuedEventSize() */;
   }
 
+  public void displayContent() {
+    int size = 0;
+    for (PartitionedRegion prQ : this.userRegionNameToshadowPRMap.values()) {
+      if (prQ != null && prQ.getDataStore() != null) {
+        Set<BucketRegion> allLocalBuckets = prQ.getDataStore().getAllLocalBucketRegions();
+        for (BucketRegion br : allLocalBuckets) {
+          if (br.size() > 0) {
+            logger.info("GGG:bucketId=" + br.getId() + ":" + br.keySet() + ":" + br.entrySet());
+          }
+        }
+      }
+    }
+  }
+
   public int localSizeForProcessor() {
     int size = 0;
     for (PartitionedRegion prQ : this.userRegionNameToshadowPRMap.values()) {

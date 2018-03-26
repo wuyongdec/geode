@@ -121,6 +121,11 @@ public class ConcurrentParallelGatewaySenderQueue implements RegionQueue {
     return this.processors[0].getQueue().size();
   }
 
+  public void displayContent() {
+    ParallelGatewaySenderQueue pgsq = (ParallelGatewaySenderQueue) (processors[0].getQueue());
+    pgsq.displayContent();
+  }
+
   public int localSize() {
     return localSize(false);
   }

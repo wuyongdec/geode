@@ -277,12 +277,22 @@ public abstract class AbstractGatewaySenderEventProcessor extends Thread {
 
     // if parallel, get both primary and secondary queues' size, then substract primary queue's size
     if (this.queue instanceof ParallelGatewaySenderQueue) {
-      return ((ParallelGatewaySenderQueue) queue).localSize(true)
+      int size = ((ParallelGatewaySenderQueue) queue).localSize(true)
           - ((ParallelGatewaySenderQueue) queue).localSize(false);
+      if (size > 0) {
+        ParallelGatewaySenderQueue pgsq = (ParallelGatewaySenderQueue) queue;
+        pgsq.displayContent();
+      }
+      return size;
     }
     if (this.queue instanceof ConcurrentParallelGatewaySenderQueue) {
-      return ((ConcurrentParallelGatewaySenderQueue) queue).localSize(true)
+      int size = ((ConcurrentParallelGatewaySenderQueue) queue).localSize(true)
           - ((ConcurrentParallelGatewaySenderQueue) queue).localSize(false);
+      if (size > 0) {
+        ConcurrentParallelGatewaySenderQueue pgsq = (ConcurrentParallelGatewaySenderQueue) queue;
+        pgsq.displayContent();
+      }
+      return size;
     }
     return this.queue.size();
   }
